@@ -74,11 +74,13 @@ public class SpringSecuirtyConfig {
     authorize.requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll(); 
 
             authorize.requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN","SUPER_ADMIN");
-             authorize.requestMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("ADMIN","SUPER_ADMIN");
-             authorize.requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN","SUPER_ADMIN");
-            authorize.requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "USER","SUPER_ADMIN");
+            authorize.requestMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("ADMIN","SUPER_ADMIN");
+            authorize.requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN","SUPER_ADMIN");
+          //  authorize.requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "USER","SUPER_ADMIN");
             authorize.requestMatchers(HttpMethod.PATCH, "/api/**").hasAnyRole("ADMIN", "USER","SUPER_ADMIN");
             authorize.requestMatchers(HttpMethod.GET, "/api/**").permitAll();
+			            authorize.requestMatchers(HttpMethod.GET, "/api/**/all").hasRole("SUPER_ADMIN");
+
 	             authorize.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
 	             
 	             authorize.anyRequest().authenticated();
