@@ -6,7 +6,10 @@ import com.example.demo.API.dto.CAglobalDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -14,7 +17,7 @@ import java.util.stream.Collectors;
 public class CAGlobalService {
     @Autowired
     private DataApiClient dataApiClient;
-   
+   private static final DecimalFormat df = new DecimalFormat("0.00");
     private static class MonthSummary {
         LocalDate minDate;
         LocalDate maxDate;
@@ -32,6 +35,77 @@ public class CAGlobalService {
             totalht += ht;
         }
     }
+    private String generateLabel(String key, String groupBy, MonthSummary summary) {
+    switch (groupBy.toLowerCase()) {
+        case "jour":
+            return summary.minDate.format(DateTimeFormatter.ofPattern("EEEE dd MMMM yyyy", Locale.FRENCH)); // ex: Mardi 22 juillet 2025
+        case "semaine":
+            return String.format(
+                "Semaine %s (%s au %s)",
+                key.substring(key.indexOf('S') + 1), // ex: "30"
+                summary.minDate.format(DateTimeFormatter.ofPattern("dd MMM", Locale.FRENCH)),
+                summary.maxDate.format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH))
+            );
+        case "mois":
+        default:
+            return summary.minDate.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.FRENCH)); // ex: Juillet 2025
+    }
+}
+
+ public List<CAglobalDTO> getChiffreAffairePeriode(LocalDate dateDebut, LocalDate dateFin, String modeDate, String inclureBLs, String groupBy) {
+    List<DataApiEntity> lignes = dataApiClient.fetchData(dateDebut, dateFin, inclureBLs, modeDate);
+    System.out.println(lignes.size() + " lignes récupérées entre " + dateDebut + " et " + dateFin);
+
+    Map<String, MonthSummary> map = new TreeMap<>();
+    Integer document = 0;
+
+    WeekFields weekFields = WeekFields.ISO;
+
+    for (DataApiEntity ligne : lignes) {
+        LocalDate date = "dateBL".equalsIgnoreCase(modeDate) ? ligne.getDateBL() : ligne.getDate();
+
+        if (date == null || date.isBefore(dateDebut) || date.isAfter(dateFin)) continue;
+        if (ligne.getTtc() == null || ligne.getTtc() == 0.0) continue;
+        if (ligne.getHt() == null || ligne.getHt() == 0.0) continue;
+
+        String key;
+        switch (groupBy.toLowerCase()) {
+            case "jour":
+                key = date.toString(); // 2025-07-22
+                break;
+            case "semaine":
+                int week = date.get(weekFields.weekOfWeekBasedYear());
+                int year = date.get(weekFields.weekBasedYear());
+                key = String.format("%d-S%02d", year, week); // 2025-S30
+                break;
+            case "mois":
+            default:
+                key = date.getYear() + "-" + String.format("%02d", date.getMonthValue()); // 2025-07
+                break;
+        }
+
+        map.putIfAbsent(key, new MonthSummary());
+        map.get(key).update(date, ligne.getTtc(), ligne.getHt());
+    }
+
+  return map.entrySet().stream()
+    .map(entry -> {
+        String key = entry.getKey();
+        MonthSummary summary = entry.getValue();
+        String label = generateLabel(key, groupBy, summary);
+
+        return new CAglobalDTO(
+            summary.minDate,
+            summary.maxDate,
+            summary.total,
+            summary.totalht,
+            document,
+            label 
+        );
+    })
+    .collect(Collectors.toList());
+
+}
 
     // Méthode principale
     public List<CAglobalDTO> getChiffreAffaireGlobal(LocalDate dateDebut, LocalDate dateFin, String modeDate, String InclureBLs ) {
@@ -74,12 +148,17 @@ public class CAGlobalService {
             
         }
      
- CAglobalDTO result = new CAglobalDTO(dateDebut, dateFin, totalttc,totalht,document);
+ CAglobalDTO result = new CAglobalDTO(dateDebut, dateFin, totalttc,totalht,document,"");
     return Collections.singletonList(result);
         // Transformation en DTO pour l'envoi au front
        // return map.values().stream()
            //     .map(summary -> new CAglobalDTO(dateDebut, dateFin, total))
             //    .collect(Collectors.toList());
     }
-
+ 
+ 
+ 
+ 
+  
+ 
  }

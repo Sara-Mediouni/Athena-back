@@ -29,5 +29,14 @@ public List<CAglobalDTO> getCaGlobal(
 ) {
     return caGlobalService.getChiffreAffaireGlobal(dateDebut, dateFin, mode,InclureBLs);
 }
-
+    @GetMapping("/chiffre-periode")
+public List<CAglobalDTO> getCaPeriode(
+    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
+    @RequestParam String mode,
+    @RequestParam String InclureBLs,
+     @RequestParam String groupBy
+) {
+    return caGlobalService.getChiffreAffairePeriode(dateDebut, dateFin, mode,InclureBLs,groupBy);
+}
 }
