@@ -126,7 +126,7 @@ SecurityContextHolder.getContext().setAuthentication(authentication);
 	    }
 	 
 	 @Override
-public String refreshAccessToken(String refreshToken) {
+    public String refreshAccessToken(String refreshToken) {
     if (refreshToken == null || !isValid(refreshToken)) {
         throw new RuntimeException("Invalid or expired refresh token");
     }
