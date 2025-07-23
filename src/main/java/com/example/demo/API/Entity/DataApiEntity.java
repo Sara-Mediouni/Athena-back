@@ -57,6 +57,7 @@ public class DataApiEntity {
     private String coNom;
     private String ctNum;
     private String ctIntitule;
+    @JsonProperty("DE_Intitule")
     private String deIntitule;
     private String faIntitule;
 
@@ -75,6 +76,9 @@ public class DataApiEntity {
     }
     public Double getHt() {
         return ht;
+    }
+    public String getDepot() {
+        return deIntitule;
     }
 }
 

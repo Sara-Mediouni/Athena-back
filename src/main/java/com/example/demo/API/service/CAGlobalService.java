@@ -46,6 +46,8 @@ public class CAGlobalService {
                 summary.minDate.format(DateTimeFormatter.ofPattern("dd MMM", Locale.FRENCH)),
                 summary.maxDate.format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH))
             );
+            case "depot":
+            return  key; // ex: Depot: Depot1
         case "mois":
         default:
             return summary.minDate.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.FRENCH)); // ex: Juillet 2025
@@ -78,7 +80,16 @@ public class CAGlobalService {
                 int year = date.get(weekFields.weekBasedYear());
                 key = String.format("%d-S%02d", year, week); // 2025-S30
                 break;
+                case "depot":
+                  if (ligne.getDepot() != null) {
+        key = ligne.getDepot();
+    } else {
+        continue; // saute cette ligne
+    }
+    
+            break;
             case "mois":
+            
             default:
                 key = date.getYear() + "-" + String.format("%02d", date.getMonthValue()); // 2025-07
                 break;
