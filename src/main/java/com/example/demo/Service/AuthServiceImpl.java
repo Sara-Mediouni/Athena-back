@@ -49,8 +49,7 @@ private PasswordEncoder passwordEncoder;
 
 public JwtAuthReponse login(LoginDto loginDto) {
     try {
-        System.out.println("Tentative de login : " + loginDto.getUsernameOrEmail());
-
+       
         Optional<User> userOpt = userRepository.findByUsernameOrEmail(loginDto.getUsernameOrEmail());
         if (userOpt.isEmpty()) {
             System.out.println("User non trouvé");
@@ -58,10 +57,7 @@ public JwtAuthReponse login(LoginDto loginDto) {
 
         User user = userOpt.orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
         boolean matches = passwordEncoder.matches(loginDto.getPassword(), user.getPassword());
-        System.out.println("Mot de passe en base: [" + user.getPassword() + "]");
-        System.out.println("Email: " + loginDto.getUsernameOrEmail());
-System.out.println("Correspondance des mots de passe ? " + matches);
-
+        
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 loginDto.getUsernameOrEmail(),
@@ -73,7 +69,7 @@ System.out.println("Correspondance des mots de passe ? " + matches);
 
         String accessToken = jwtTokenProvider.generateToken(authentication,principal);
         RefreshToken refreshToken = createRefreshToken();
-
+        
         Role role = authentication.getAuthorities().stream()
                 .findFirst()
                 .map(grantedAuthority -> {

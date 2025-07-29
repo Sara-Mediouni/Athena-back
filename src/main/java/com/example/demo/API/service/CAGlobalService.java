@@ -46,6 +46,8 @@ public class CAGlobalService {
                 summary.minDate.format(DateTimeFormatter.ofPattern("dd MMM", Locale.FRENCH)),
                 summary.maxDate.format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH))
             );
+            case "commercial":
+            return key; // ex: CO_Nom: Nom1
             case "depot":
             return  key; // ex: Depot: Depot1
         case "mois":
@@ -54,8 +56,9 @@ public class CAGlobalService {
     }
 }
 
- public List<CAglobalDTO> getChiffreAffairePeriode(LocalDate dateDebut, LocalDate dateFin, String modeDate, String inclureBLs, String groupBy) {
-    List<DataApiEntity> lignes = dataApiClient.fetchData(dateDebut, dateFin, inclureBLs, modeDate);
+ public List<CAglobalDTO> getChiffreAffairePeriode(LocalDate dateDebut, LocalDate dateFin, String modeDate,Long id, String inclureBLs, String groupBy) {
+    List<DataApiEntity> lignes = dataApiClient.fetchData(dateDebut, dateFin, inclureBLs, modeDate,id);
+    
     System.out.println(lignes.size() + " lignes récupérées entre " + dateDebut + " et " + dateFin);
 
     Map<String, MonthSummary> map = new TreeMap<>();
@@ -80,11 +83,21 @@ public class CAGlobalService {
                 int year = date.get(weekFields.weekBasedYear());
                 key = String.format("%d-S%02d", year, week); // 2025-S30
                 break;
+            case "commercial":
+                if (ligne.getCoNom() != null) {
+                key =ligne.getCoNom();
+            }
+                     
+    else {
+        continue; 
+    }           break;
+    
                 case "depot":
-                  if (ligne.getDepot() != null) {
-        key = ligne.getDepot();
+                if (ligne.getDepot() != null) {
+                key = ligne.getDepot();
+        
     } else {
-        continue; // saute cette ligne
+        continue; 
     }
     
             break;
@@ -119,9 +132,9 @@ public class CAGlobalService {
 }
 
     // Méthode principale
-    public List<CAglobalDTO> getChiffreAffaireGlobal(LocalDate dateDebut, LocalDate dateFin, String modeDate, String InclureBLs ) {
+    public List<CAglobalDTO> getChiffreAffaireGlobal(LocalDate dateDebut,Long id, LocalDate dateFin, String modeDate, String InclureBLs ) {
       
-        List<DataApiEntity> lignes = dataApiClient.fetchData(dateDebut, dateFin,InclureBLs,modeDate);
+        List<DataApiEntity> lignes = dataApiClient.fetchData(dateDebut, dateFin,InclureBLs,modeDate,id);
         System.out.println(lignes.size() + " lignes récupérées entre " + dateDebut + " et " + dateFin);
       //  Map<String, MonthSummary> map = new TreeMap<>();
         Double totalttc=0.0;

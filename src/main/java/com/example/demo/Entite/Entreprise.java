@@ -29,7 +29,7 @@ public class Entreprise {
 	@Column(nullable = false, unique = true)
 	private String matricule;
 	
-	@Column(nullable = false, unique = true)
+	@Column(nullable = false, unique = false)
 	private String address;
 	 
 	@Column(nullable = false, unique = true)
