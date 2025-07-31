@@ -135,7 +135,6 @@ public class CAGlobalService {
     public List<CAglobalDTO> getChiffreAffaireGlobal(LocalDate dateDebut,Long id, LocalDate dateFin, String modeDate, String InclureBLs ) {
       
         List<DataApiEntity> lignes = dataApiClient.fetchData(dateDebut, dateFin,InclureBLs,modeDate,id);
-        System.out.println(lignes.size() + " lignes récupérées entre " + dateDebut + " et " + dateFin);
       //  Map<String, MonthSummary> map = new TreeMap<>();
         Double totalttc=0.0;
         Double totalht=0.0;
@@ -146,8 +145,7 @@ public class CAGlobalService {
             LocalDate date = "dateBL".equalsIgnoreCase(modeDate)
                     ? ligne.getDateBL()
                     : ligne.getDate();
-             System.out.println(date);
-             System.out.println(ligne.getTtc());
+            
             if (date == null || date.isBefore(dateDebut) || date.isAfter(dateFin)) {
                 continue;
             }
@@ -161,7 +159,6 @@ public class CAGlobalService {
             document+=1;
             totalttc+=ligne.getTtc();
             totalht+=ligne.getHt();
-            System.out.println(document);
             // Clé de regroupement : par mois et année
           //  String key = date.getYear() + "-" + String.format("%02d", date.getMonthValue());
            // System.out.println(date.getYear() + "-" + String.format("%02d", date.getMonthValue()));

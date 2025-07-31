@@ -30,33 +30,33 @@ public class DataApiClient {
         this.entRepo = entRepo;
     }
 
-    public List<DataApiEntity> fetchData(LocalDate debut, LocalDate fin, String inclureBLs, String modeDate, Long id) {
+    public List<DataApiEntity> fetchData(LocalDate debut, LocalDate fin, String modeDate ,String inclureBLs, Long id) {
         Entreprise entreprise = entRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entreprise non trouvée avec id: " + id));
 
         String weblink = entreprise.getLien();
-
+         System.out.println(inclureBLs);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
+        System.out.println(modeDate);
         // Construction de l'URL en fonction des paramètres
         String baseUrl;
-        if ("DateBL".equals(modeDate) && "true".equals(inclureBLs)) {
+        if ("dateBL".equals(modeDate) && "true".equals(inclureBLs)) {
             baseUrl = "/api/CABLDBL";
-        } else if ("DateFacture".equals(modeDate) && "true".equals(inclureBLs)) {
+        } else if ("dateFacture".equals(modeDate) && "true".equals(inclureBLs)) {
             baseUrl = "/api/CABLDF";
-        } else if ("DateBL".equals(modeDate)) {
+        } else if ("dateBL".equals(modeDate) && "false".equals(inclureBLs)) {
             baseUrl = "/api/CANBLDBL";
-        } else {
-            baseUrl = "/api/CANBLDF";
+        } else  {
+            baseUrl="/api/CANBLDF";
         }
 
         String fullUrl = "http://" + weblink + baseUrl;
-
+         System.out.println(fullUrl);
         String apiUrl = UriComponentsBuilder.fromHttpUrl(fullUrl)
                 .queryParam("_debut", debut.format(formatter))
                 .queryParam("_fin", fin.format(formatter))
                 .toUriString();
-
+        System.out.println(apiUrl);
         DataApiEntity[] result = restTemplate.getForObject(apiUrl, DataApiEntity[].class);
 
         return Arrays.asList(result != null ? result : new DataApiEntity[0]);
