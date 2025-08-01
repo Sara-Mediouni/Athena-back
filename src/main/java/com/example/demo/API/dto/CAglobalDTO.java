@@ -2,7 +2,6 @@ package com.example.demo.API.dto;
 
 import java.time.LocalDate;
 
-import jakarta.persistence.criteria.CriteriaBuilder.In;
 import lombok.Data;
 
 @Data

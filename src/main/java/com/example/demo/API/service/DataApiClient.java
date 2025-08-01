@@ -7,7 +7,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.example.demo.API.Entity.DataApiEntity;
 import com.example.demo.Entite.Entreprise;
 import com.example.demo.Dao.EntrpriseRepository;
-import com.example.demo.dto.EntrepriseDTO;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -15,7 +14,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 

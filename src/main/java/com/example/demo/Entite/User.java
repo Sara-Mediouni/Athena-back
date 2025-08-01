@@ -1,10 +1,8 @@
 package com.example.demo.Entite;
 
 import java.util.List;
-import java.util.Set;
 
 import com.example.demo.enums.Role;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

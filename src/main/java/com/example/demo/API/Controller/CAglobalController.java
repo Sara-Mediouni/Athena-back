@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.API.dto.CAglobalDTO;
 import com.example.demo.API.service.CAGlobalService;
-
-import jakarta.persistence.criteria.CriteriaBuilder.In;
 @RestController
 @RequestMapping("/api/caglobal")
 public class CAglobalController {

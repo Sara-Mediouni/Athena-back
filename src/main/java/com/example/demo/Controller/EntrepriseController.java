@@ -23,7 +23,6 @@ import com.example.demo.Service.EntrepriseService;
 import com.example.demo.Service.UserService;
 import com.example.demo.dto.EntrepriseDTO;
 import com.example.demo.dto.EntrepriseUpdateDTO;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.transaction.Transactional;
 
