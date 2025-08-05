@@ -56,19 +56,19 @@ public class SpringSecuirtyConfig {
 		        .cors(cors -> cors.configurationSource(request -> {
 		            CorsConfiguration config = new CorsConfiguration();
 		            config.setAllowCredentials(true);
-                    config.addAllowedOriginPattern("*"); // à sécuriser en prod
-		            config.addAllowedHeader("*"); // Tous les en-têtes autorisés
+                    config.addAllowedOriginPattern("*");  
+		            config.addAllowedHeader("*"); 
 		            config.addAllowedMethod("GET");
 		            config.addAllowedMethod("POST");
 		            config.addAllowedMethod("PUT");
 		            config.addAllowedMethod("DELETE");
-		            config.addAllowedMethod("OPTIONS");// Toutes les méthodes autorisées
+		            config.addAllowedMethod("OPTIONS"); 
 		            return config;
 		        }))
 			 
 			 
 	         .authorizeHttpRequests((authorize) -> {
-				    // 🔓 Autoriser les endpoints publics
+				   
     authorize.requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll(); 
 
             authorize.requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN","SUPER_ADMIN");

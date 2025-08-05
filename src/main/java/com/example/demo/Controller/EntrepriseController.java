@@ -75,8 +75,7 @@ public ResponseEntity<List<EntrepriseDTO>> getAll() {
         System.out.println("Nb entreprises : " + entreprises.size());
 
 
-        // Convertir vers DTO
-        List<EntrepriseDTO> entrepriseDTOs = entreprises.stream()
+         List<EntrepriseDTO> entrepriseDTOs = entreprises.stream()
             .map(EntrepriseDTO::new)
             .toList();
         System.out.println(entrepriseDTOs);

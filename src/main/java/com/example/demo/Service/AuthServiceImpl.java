@@ -142,30 +142,25 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidCredentialsException("Utilisateur non trouvé");
         }
 
-        // Créer un objet UserPrincipal
+         
         UserPrincipal userPrincipal = new UserPrincipal(user);
 
-        // Créer l'objet Authentication pour l'utilisateur
+      
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userPrincipal,
-                null, // Le mot de passe est nul ici car ce n'est pas nécessaire pour le refresh token
-                userPrincipal.getAuthorities() // Récupérer les autorités de l'utilisateur
+                null,  
+                userPrincipal.getAuthorities() 
         );
 
-        // Générer un nouveau jeton d'accès en utilisant le UserPrincipal
-        return jwtTokenProvider.generateToken(authentication, userPrincipal);
+         return jwtTokenProvider.generateToken(authentication, userPrincipal);
     }
 
-    // Vérification si le token est valide ou expiré
-    private boolean isValid(String refreshToken) {
-        // Exemple de validation avec jwtTokenProvider
-        return jwtTokenProvider.validateToken(refreshToken);
+     private boolean isValid(String refreshToken) {
+         return jwtTokenProvider.validateToken(refreshToken);
     }
 
-    // Extraire le username ou userId à partir du refreshToken
-    private String getUsernameFromRefreshToken(String refreshToken) {
-        // Exemple de récupération du username à partir du refreshToken
-        return jwtTokenProvider.getName(refreshToken);
+     private String getUsernameFromRefreshToken(String refreshToken) {
+         return jwtTokenProvider.getName(refreshToken);
     }
 
 }

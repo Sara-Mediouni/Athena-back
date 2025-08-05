@@ -57,17 +57,16 @@ public ResponseEntity<?> login(@RequestBody @Valid LoginDto loginDto, BindingRes
     if (result.hasErrors()) {
         
 
-        // Créer une réponse d'erreur détaillée
+       
         ErrorResponse errorResponse = new ErrorResponse("Validation failed", HttpStatus.BAD_REQUEST.value());
 
         return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    // Si la validation passe, continuer avec la logique de login
+    
     JwtAuthReponse jwtAuthReponse = authService.login(loginDto);
 
-    // Retournons un ResponseEntity avec le bon type
-    return new ResponseEntity<JwtAuthReponse>(jwtAuthReponse, HttpStatus.OK);  // Typé explicitement
+    return new ResponseEntity<JwtAuthReponse>(jwtAuthReponse, HttpStatus.OK);  
 }
 @PostMapping("/signup")
 public ResponseEntity<?> signup(@RequestBody @Valid SignupDTO signupDto, BindingResult result) {
@@ -90,22 +89,22 @@ public ResponseEntity<?> signup(@RequestBody @Valid SignupDTO signupDto, Binding
 
   @PostMapping("/refresh")
     public ResponseEntity<JwtAuthReponse> refreshToken(@RequestBody Map<String, String> body) {
-        // Récupérer le refresh token depuis la requête
+        
         String refreshToken = body.get("refreshToken");
 
-        // Vérification de la présence du refresh token
+       
         if (refreshToken == null || refreshToken.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null); // Mauvaise requête si absent
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null); 
         }
 
-        // Rafraîchir le token via le service
+ 
         try {
             String newAccessToken = authService.refreshAccessToken(refreshToken);
-            // Créer une nouvelle réponse avec le token
+            
             JwtAuthReponse response = new JwtAuthReponse(newAccessToken, refreshToken, "Bearer", null, null);
-            return ResponseEntity.ok(response);  // Retourner le nouveau token
+            return ResponseEntity.ok(response);   
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);  // Si problème avec le token, retour Unauthorized
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);   
         }
     }
 

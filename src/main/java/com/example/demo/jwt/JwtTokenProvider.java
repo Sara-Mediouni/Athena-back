@@ -53,8 +53,8 @@ public class JwtTokenProvider {
 
 	public String generateRefreshToken(String username) {
 		Date currentDate = new Date();
-		long refreshTokenExpiration = jwtExpirationDate * 2; // Exemple : une expiration plus longue pour le
-																// refreshToken
+		long refreshTokenExpiration = jwtExpirationDate * 2; 
+																 
 		Date expireDate = new Date(currentDate.getTime() + refreshTokenExpiration);
 
 		return Jwts.builder()

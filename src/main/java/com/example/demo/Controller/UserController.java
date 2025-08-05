@@ -72,23 +72,19 @@ public User addUser(@RequestBody @Valid userDTO userRequest) {
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rôle invalide : " + userRequest.getRole());
         }
-      // Extraire les IDs depuis les objets EntrepriseIdDTO
-      List<Long> entrepriseIds = userRequest.getEntreprises()
+       List<Long> entrepriseIds = userRequest.getEntreprises()
                                   .stream()
                                   .map(EntrepriseIdDTO::getId)
                                   .collect(Collectors.toList());
 
 
-// Rechercher les entreprises dans la base de données
-List<Entreprise> entreprises = ent.findAllById(entrepriseIds);
+ List<Entreprise> entreprises = ent.findAllById(entrepriseIds);
 
-// Vérifier que toutes les entreprises existent
-if (entreprises.size() != entrepriseIds.size()) {
+ if (entreprises.size() != entrepriseIds.size()) {
     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Une ou plusieurs entreprises sont introuvables.");
 }
 
-// Associer les entreprises à l'utilisateur
-user.setEntreprises(entreprises);
+ user.setEntreprises(entreprises);
 
 
         return userRepo.save(user);
@@ -148,10 +144,9 @@ public ResponseEntity<User> getUser(@PathVariable Long id) {
 }
 @GetMapping("/by-entreprise")
 public ResponseEntity<List<userDTO>> getUsersByMyEntreprise() {
-    User currentUser = userService.getCurrentUser(); // ← avec entreprises chargées
+    User currentUser = userService.getCurrentUser();  
 
-    List<User> users = userRepo.findByEntreprisesIn(currentUser.getEntreprises()); // ← méthode JPA + @EntityGraph
-
+    List<User> users = userRepo.findByEntreprisesIn(currentUser.getEntreprises());  
     List<userDTO> userDtos = users.stream()
         .map(userDTO::new)
         .collect(Collectors.toList());
@@ -170,8 +165,7 @@ public ResponseEntity<List<userDTO>> getUsersByRole(@AuthenticationPrincipal Use
     }
      
 
-    // Récupérer l'utilisateur complet depuis la base de données avec son ID
-    User userconnected = userRepo.findById(currentUser.getId()).orElseThrow(() -> new RuntimeException("User not found"));
+     User userconnected = userRepo.findById(currentUser.getId()).orElseThrow(() -> new RuntimeException("User not found"));
 
     List<User> users;
 
@@ -186,11 +180,9 @@ public ResponseEntity<List<userDTO>> getUsersByRole(@AuthenticationPrincipal Use
         System.out.println(userconnected);
     }
 
-    // Forcer le chargement des entreprises
-    users.forEach(user -> user.getEntreprises().forEach(e -> e.getId())); // Si entreprises sont une collection Lazy
+     users.forEach(user -> user.getEntreprises().forEach(e -> e.getId()));  
 
-    // Transforme les utilisateurs en DTOs
-    List<userDTO> dtos = users.stream()
+     List<userDTO> dtos = users.stream()
         .map(userDTO::new)
         .toList();
 

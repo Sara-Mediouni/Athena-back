@@ -39,14 +39,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	                                    HttpServletResponse response,
 	                                    FilterChain filterChain) throws ServletException, IOException {
 		 
-		// Get JWT token from HTTP request
 	        String token = getTokenFromRequest(request);
 	        
-	     // Validate Token
-	        if(StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)){
+ 	        if(StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)){
 	        	
-	        	// get username from token
-	            String username = jwtTokenProvider.getName(token);
+ 	            String username = jwtTokenProvider.getName(token);
 	            
 	            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 	            

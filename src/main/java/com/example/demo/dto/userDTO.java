@@ -30,8 +30,7 @@ public class userDTO {
     @NotEmpty(message = "Au moins une entreprise doit être sélectionnée.")
     private List<@Valid EntrepriseIdDTO> entreprises;
 
-    // Constructeur vide obligatoire pour Jackson
-    public userDTO() {}
+     public userDTO() {}
 
     public userDTO(User user) {
         this.id = user.getId();

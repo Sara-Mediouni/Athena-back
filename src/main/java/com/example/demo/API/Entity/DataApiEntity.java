@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 @Data
 @Entity
-@Table(name = "factures") // le nom de ta table réelle ici
+@Table(name = "factures")
 public class DataApiEntity {
 
     @Id
@@ -34,8 +34,9 @@ public class DataApiEntity {
     
 
     private String refArticle;
+     @JsonProperty("Designation")
     private String designation;
-
+    @JsonProperty("Qte")
     private Double qte;
     private Double remise;
     private Double pu;
@@ -56,6 +57,7 @@ public class DataApiEntity {
     @JsonProperty("CO_Nom")
     private String coNom;
     private String ctNum;
+     @JsonProperty("CT_Intitule")
     private String ctIntitule;
     @JsonProperty("DE_Intitule")
     private String deIntitule;
@@ -82,6 +84,15 @@ public class DataApiEntity {
     }
     public String getCoNom() {
         return coNom;
+    }
+    public String getCtIntitule() {
+        return ctIntitule;
+    }
+    public String getDesignation() {
+        return designation;
+    }
+    public Double getQte(){
+        return qte;
     }
 }
 

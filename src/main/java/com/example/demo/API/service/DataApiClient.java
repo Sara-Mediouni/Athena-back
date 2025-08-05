@@ -36,7 +36,6 @@ public class DataApiClient {
          System.out.println(inclureBLs);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         System.out.println(modeDate);
-        // Construction de l'URL en fonction des paramètres
         String baseUrl;
         if ("dateBL".equals(modeDate) && "true".equals(inclureBLs)) {
             baseUrl = "/api/CABLDBL";

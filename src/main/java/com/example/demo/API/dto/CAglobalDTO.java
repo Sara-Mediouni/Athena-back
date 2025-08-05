@@ -10,15 +10,18 @@ public class CAglobalDTO {
     private LocalDate Datedebut;
     private LocalDate Datefin; 
     private Double cattc;
+     private Double qte;
     private Double caht;
     private Integer document;
     private String label;
+
     
-    public CAglobalDTO(LocalDate datedebut, LocalDate datefin, Double cattc, Double caht,Integer document, String label) {
+    public CAglobalDTO(LocalDate datedebut, LocalDate datefin, Double cattc, Double caht, Double qte,Integer document, String label) {
         this.Datedebut = datedebut;
         this.Datefin = datefin;
         this.cattc = cattc;
         this.caht = caht;
+        this.qte=qte;
         this.document = document;
         this.label = label;
     }

@@ -57,13 +57,11 @@ public void deleteEntrepriseById(Long id) {
     Entreprise entreprise = entrpriseRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Entreprise non trouvée"));
 
-    // Détacher l'entreprise de tous les users associés
-    for (User user : entreprise.getUsers()) {
+     for (User user : entreprise.getUsers()) {
         user.getEntreprises().remove(entreprise);
     }
 
-    // Supprimer l'entreprise
-    entrpriseRepository.delete(entreprise);
+     entrpriseRepository.delete(entreprise);
 }
 
 @Transactional

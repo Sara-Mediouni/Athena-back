@@ -140,10 +140,9 @@ System.out.println("User existant: " + user.getEmail());
 
 public User getCurrentUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    String email = authentication.getName(); // généralement c'est l'email dans ton UserDetails
+    String email = authentication.getName(); 
 
-    // Appelle une méthode custom qui charge l'utilisateur + ses entreprises
-    return userRepository.findByEmailWithEntreprises(email)
+     return userRepository.findByEmailWithEntreprises(email)
         .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 }
 

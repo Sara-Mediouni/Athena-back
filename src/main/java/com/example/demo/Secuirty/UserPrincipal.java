@@ -26,8 +26,7 @@ public class UserPrincipal implements UserDetails {
     }
     @Override
 public String getUsername() {
-    return user.getEmail();  // OU user.getName() selon ce que tu utilises comme login
-}
+    return user.getEmail();  }
 
  @JsonIgnore
     public List<Entreprise> getEntreprises() {
@@ -36,7 +35,7 @@ public String getUsername() {
 
 @Override
 public String getPassword() {
-    return user.getPassword(); // Doit toujours retourner le hash du mot de passe (encode avec BCrypt)
+    return user.getPassword();
 }
     public Long getId() {
         return id;

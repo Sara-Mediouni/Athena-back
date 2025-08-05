@@ -23,15 +23,12 @@ public class ConfigRest {
     public RestTemplate restTemplate() {
         RestTemplate restTemplate = new RestTemplate();
 
-        // Parcours des convertisseurs pour configurer Jackson
-        List<HttpMessageConverter<?>> converters = restTemplate.getMessageConverters();
+         List<HttpMessageConverter<?>> converters = restTemplate.getMessageConverters();
         for (HttpMessageConverter<?> converter : converters) {
             if (converter instanceof MappingJackson2HttpMessageConverter) {
                 ObjectMapper mapper = ((MappingJackson2HttpMessageConverter) converter).getObjectMapper();
-                // Enregistre JavaTimeModule pour gérer LocalDateTime
-                mapper.registerModule(new JavaTimeModule());
-                // Désactive les timestamps en format numérique
-                mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+                 mapper.registerModule(new JavaTimeModule());
+                 mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             }
         }
         return restTemplate;
