@@ -140,7 +140,12 @@ System.out.println("User existant: " + user.getEmail());
 
 public User getCurrentUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    String email = authentication.getName(); 
+    if (authentication == null || !authentication.isAuthenticated()) {
+    throw new RuntimeException("Aucun utilisateur authentifié");
+}
+String email = authentication.getName();
+System.out.println("Email récupéré du token : " + email);
+   
 
      return userRepository.findByEmailWithEntreprises(email)
         .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));

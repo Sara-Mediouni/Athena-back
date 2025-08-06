@@ -28,101 +28,125 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
+import java.time.Duration;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+
 
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-	
-	
-	
-	
-	
-	@Autowired
-	private AuthService authService;
-	
-	@Autowired
-	 JwtTokenProvider jwtTokenProvider ;
-	
-	@Autowired
-	private UserRepository userRepository ;
-	
-	
-	
-@PostMapping("/login")
-    
 
-public ResponseEntity<?> login(@RequestBody @Valid LoginDto loginDto, BindingResult result) {
+    @Autowired
+    private AuthService authService;
 
-    if (result.hasErrors()) {
+    @Autowired
+    private UserRepository userRepository;
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody @Valid LoginDto loginDto, BindingResult result) {
+
+        if (result.hasErrors()) {
+            ErrorResponse errorResponse = new ErrorResponse("Validation failed", HttpStatus.BAD_REQUEST.value());
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        JwtAuthReponse jwtAuthReponse = authService.login(loginDto);
+
         
+        ResponseCookie cookie = ResponseCookie.from("token", jwtAuthReponse.getAccessToken())
+                .httpOnly(true)
+                .secure(true) // Met true si HTTPS, false en dev local HTTP
+                .path("/")
+                .maxAge(Duration.ofHours(1))
+                .sameSite("Strict")
+                .build();
 
-       
-        ErrorResponse errorResponse = new ErrorResponse("Validation failed", HttpStatus.BAD_REQUEST.value());
-
-        return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(jwtAuthReponse);
     }
 
-    
-    JwtAuthReponse jwtAuthReponse = authService.login(loginDto);
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody @Valid SignupDTO signupDto, BindingResult result) {
 
-    return new ResponseEntity<JwtAuthReponse>(jwtAuthReponse, HttpStatus.OK);  
-}
-@PostMapping("/signup")
-public ResponseEntity<?> signup(@RequestBody @Valid SignupDTO signupDto, BindingResult result) {
-    System.out.println("signup");
-     Optional<User> existingUser=userRepository.findByUsernameOrEmail(signupDto.getUsernameOrEmail());
-    if (existingUser.isPresent()) {
-        throw new UserAlreadyExistsException("L'utilisateur existe déjà avec cet email ou nom d'utilisateur.");
+        Optional<User> existingUser = userRepository.findByUsernameOrEmail(signupDto.getUsernameOrEmail());
+        if (existingUser.isPresent()) {
+            throw new UserAlreadyExistsException("L'utilisateur existe déjà avec cet email ou nom d'utilisateur.");
+        }
+        if (result.hasErrors()) {
+            String errorMessage = result.getAllErrors().stream()
+                    .map(ObjectError::getDefaultMessage)
+                    .collect(Collectors.joining(", "));
+            return new ResponseEntity<>(new ErrorResponse(errorMessage, HttpStatus.BAD_REQUEST.value()), HttpStatus.BAD_REQUEST);
+        }
+
+        JwtAuthReponse jwtAuthReponse = authService.signup(signupDto);
+
+        ResponseCookie cookie = ResponseCookie.from("token", jwtAuthReponse.getAccessToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofHours(1))
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(jwtAuthReponse);
     }
-    if (result.hasErrors()) {
-        String errorMessage = result.getAllErrors().stream()
-            .map(ObjectError::getDefaultMessage)
-            .collect(Collectors.joining(", "));
-        return new ResponseEntity<>(new ErrorResponse(errorMessage, HttpStatus.BAD_REQUEST.value()), HttpStatus.BAD_REQUEST);
-    }
 
-    JwtAuthReponse jwtAuthReponse = authService.signup(signupDto);
-    return new ResponseEntity<>(jwtAuthReponse, HttpStatus.OK);
-}
-
-
-  @PostMapping("/refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<JwtAuthReponse> refreshToken(@RequestBody Map<String, String> body) {
-        
         String refreshToken = body.get("refreshToken");
 
-       
         if (refreshToken == null || refreshToken.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null); 
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
 
- 
         try {
             String newAccessToken = authService.refreshAccessToken(refreshToken);
-            
+
+            ResponseCookie cookie = ResponseCookie.from("token", newAccessToken)
+                    .httpOnly(true)
+                    .secure(true)
+                    .path("/")
+                    .maxAge(Duration.ofHours(1))
+                    .sameSite("Strict")
+                    .build();
+
             JwtAuthReponse response = new JwtAuthReponse(newAccessToken, refreshToken, "Bearer", null, null);
-            return ResponseEntity.ok(response);   
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .body(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);   
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request) {
 
+        // Supprime le cookie en le renvoyant avec maxAge=0
+        ResponseCookie cookie = ResponseCookie.from("token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
 
-@PostMapping("/logout")
-public ResponseEntity<String> logout(HttpServletRequest request) {
-    HttpSession session = request.getSession(false);
-    if (session != null) {
-        session.invalidate();
+        // Invalide session si existante
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body("Déconnexion réussie");
     }
-    return ResponseEntity.ok("Déconnexion réussie");
-}
-		
-
-
-
-	
-	
-
 }

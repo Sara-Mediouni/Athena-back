@@ -1,11 +1,13 @@
 package com.example.demo.Controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -188,6 +190,17 @@ public ResponseEntity<List<userDTO>> getUsersByRole(@AuthenticationPrincipal Use
 
     return ResponseEntity.ok(dtos);
 }
+
+   @GetMapping("/me")
+    public Map<String, Object> getCurrentUser() {
+         User currentUser = userService.getCurrentUser();  
+
+        return Map.of(
+            "username", currentUser.getName(),
+            "role", currentUser.getRole()
+        );
+    }
+
 
 
 
