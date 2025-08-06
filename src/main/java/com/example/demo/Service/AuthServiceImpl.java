@@ -1,9 +1,15 @@
 package com.example.demo.Service;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 import com.example.demo.jwt.SignupDTO;
+
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -43,7 +49,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
 
-    public JwtAuthReponse login(LoginDto loginDto) {
+    public JwtAuthReponse login(LoginDto loginDto, HttpServletResponse response) {
         try {
 
             Optional<User> userOpt = userRepository.findByUsernameOrEmail(loginDto.getUsernameOrEmail());
@@ -71,19 +77,25 @@ public class AuthServiceImpl implements AuthService {
                         return Role.valueOf(roleName);
                     })
                     .orElse(Role.USER);
-                   
-            // ResponseCookie cookie = ResponseCookie.from("token", accessToken)
-            // .httpOnly(true)
-            // .secure(true) // true si HTTPS
-            // .path("/")
-            // .sameSite("Strict")
-            // .maxAge(Duration.ofDays(1)) // ou selon ton expiration
-            // .build();
+            ResponseCookie accessTokenCookie = ResponseCookie.from("token", accessToken)
+                    .httpOnly(true)
+                    .secure(false)
+                    .path("/")
+                    .maxAge(Duration.ofHours(1))
+                    .sameSite("Lax") 
+                    .build();
 
-            // return ResponseEntity.ok()
-            // .header(HttpHeaders.SET_COOKIE, cookie.toString())
-            // .body("Connexion réussie");
-            return new JwtAuthReponse(accessToken, refreshToken.getToken(), "Bearer", role, user);
+            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken.getToken())
+                    .httpOnly(true)
+                    .secure(false)
+                    .path("/")
+                    .maxAge(604800)
+                    .sameSite("Lax") 
+                    .build();
+
+            response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+            response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+            return new JwtAuthReponse(role, user);
 
         } catch (BadCredentialsException e) {
             throw new InvalidCredentialsException("Identifiants invalides");
@@ -95,7 +107,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public JwtAuthReponse signup(SignupDTO signupDto) {
+    public JwtAuthReponse signup(SignupDTO signupDto, HttpServletResponse response) {
         User user = new User();
 
         user.setName(signupDto.getName());
@@ -115,9 +127,27 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String accessToken = jwtTokenProvider.generateToken(authentication, principal);
         RefreshToken refreshToken = createRefreshToken();
-        Role role = signupDto.getRole();
+        ResponseCookie accessTokenCookie = ResponseCookie.from("token", accessToken)
+                .httpOnly(true)
+               .secure(false)
+                .path("/")
+                .maxAge(3600)
+                .sameSite("Lax") 
+                .build();
 
-        return new JwtAuthReponse(accessToken, refreshToken.getToken(), "Bearer", role, user);
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken.getToken())
+                .httpOnly(true)
+              .secure(false)
+                .path("/")
+                .maxAge(604800)
+                .sameSite("Lax") 
+                .build();
+        Role role = signupDto.getRole();
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
+        return new JwtAuthReponse(role, user);
+
     }
 
     private RefreshToken createRefreshToken() {
@@ -132,35 +162,32 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Invalid or expired refresh token");
         }
 
-        // Extraire le username ou userId à partir du refreshToken
+     
         String username = getUsernameFromRefreshToken(refreshToken);
 
-        // Recherche de l'utilisateur dans la base de données
+      
         User user = userRepository.findByEmail(username);
         if (user == null) {
 
             throw new InvalidCredentialsException("Utilisateur non trouvé");
         }
 
-         
         UserPrincipal userPrincipal = new UserPrincipal(user);
 
-      
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userPrincipal,
-                null,  
-                userPrincipal.getAuthorities() 
-        );
+                null,
+                userPrincipal.getAuthorities());
 
-         return jwtTokenProvider.generateToken(authentication, userPrincipal);
+        return jwtTokenProvider.generateToken(authentication, userPrincipal);
     }
 
-     private boolean isValid(String refreshToken) {
-         return jwtTokenProvider.validateToken(refreshToken);
+    private boolean isValid(String refreshToken) {
+        return jwtTokenProvider.validateToken(refreshToken);
     }
 
-     private String getUsernameFromRefreshToken(String refreshToken) {
-         return jwtTokenProvider.getName(refreshToken);
+    private String getUsernameFromRefreshToken(String refreshToken) {
+        return jwtTokenProvider.getName(refreshToken);
     }
 
 }

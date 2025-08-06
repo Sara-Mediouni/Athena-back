@@ -25,6 +25,7 @@ import com.example.demo.jwt.LoginDto;
 import com.example.demo.jwt.SignupDTO;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
@@ -47,85 +48,45 @@ public class AuthController {
     private UserRepository userRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody @Valid LoginDto loginDto, BindingResult result) {
-
-        if (result.hasErrors()) {
-            ErrorResponse errorResponse = new ErrorResponse("Validation failed", HttpStatus.BAD_REQUEST.value());
-            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-        }
-
-        JwtAuthReponse jwtAuthReponse = authService.login(loginDto);
-
-        
-        ResponseCookie cookie = ResponseCookie.from("token", jwtAuthReponse.getAccessToken())
-                .httpOnly(true)
-                .secure(true) // Met true si HTTPS, false en dev local HTTP
-                .path("/")
-                .maxAge(Duration.ofHours(1))
-                .sameSite("Strict")
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(jwtAuthReponse);
+     public ResponseEntity<JwtAuthReponse> login(@RequestBody LoginDto loginDto, HttpServletResponse response) {
+        JwtAuthReponse authResponse = authService.login(loginDto, response);
+        return ResponseEntity.ok(authResponse);
     }
-
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody @Valid SignupDTO signupDto, BindingResult result) {
+    public ResponseEntity<JwtAuthReponse> signup(@RequestBody SignupDTO signupDTO, HttpServletResponse response) {
+        JwtAuthReponse authResponse = authService.signup(signupDTO, response);
+        return ResponseEntity.ok(authResponse);
+    } 
+   @PostMapping("/refresh")
+public ResponseEntity<JwtAuthReponse> refreshToken(@RequestBody Map<String, String> body) {
+    String refreshToken = body.get("refreshToken");
 
-        Optional<User> existingUser = userRepository.findByUsernameOrEmail(signupDto.getUsernameOrEmail());
-        if (existingUser.isPresent()) {
-            throw new UserAlreadyExistsException("L'utilisateur existe déjà avec cet email ou nom d'utilisateur.");
-        }
-        if (result.hasErrors()) {
-            String errorMessage = result.getAllErrors().stream()
-                    .map(ObjectError::getDefaultMessage)
-                    .collect(Collectors.joining(", "));
-            return new ResponseEntity<>(new ErrorResponse(errorMessage, HttpStatus.BAD_REQUEST.value()), HttpStatus.BAD_REQUEST);
-        }
+    if (refreshToken == null || refreshToken.trim().isEmpty()) {
+        return ResponseEntity.badRequest().build();
+    }
 
-        JwtAuthReponse jwtAuthReponse = authService.signup(signupDto);
+    try {
+        String newAccessToken = authService.refreshAccessToken(refreshToken);
 
-        ResponseCookie cookie = ResponseCookie.from("token", jwtAuthReponse.getAccessToken())
+        ResponseCookie cookie = ResponseCookie.from("token", newAccessToken)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)
                 .path("/")
                 .maxAge(Duration.ofHours(1))
                 .sameSite("Strict")
                 .build();
 
+        JwtAuthReponse response = new JwtAuthReponse(); // avec constructeur vide
+        response.setAccessToken(newAccessToken);
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(jwtAuthReponse);
+                .body(response);
+
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
-
-    @PostMapping("/refresh")
-    public ResponseEntity<JwtAuthReponse> refreshToken(@RequestBody Map<String, String> body) {
-        String refreshToken = body.get("refreshToken");
-
-        if (refreshToken == null || refreshToken.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
-
-        try {
-            String newAccessToken = authService.refreshAccessToken(refreshToken);
-
-            ResponseCookie cookie = ResponseCookie.from("token", newAccessToken)
-                    .httpOnly(true)
-                    .secure(true)
-                    .path("/")
-                    .maxAge(Duration.ofHours(1))
-                    .sameSite("Strict")
-                    .build();
-
-            JwtAuthReponse response = new JwtAuthReponse(newAccessToken, refreshToken, "Bearer", null, null);
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                    .body(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        }
-    }
+}
 
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) {

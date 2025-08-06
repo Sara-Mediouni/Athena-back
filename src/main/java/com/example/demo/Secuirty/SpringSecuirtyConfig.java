@@ -1,5 +1,7 @@
 package com.example.demo.Secuirty;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,51 +51,45 @@ public class SpringSecuirtyConfig {
 		 
 		 
 		 @Bean
-		    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-			 
-			 
-			 http.csrf(csrf -> csrf.disable())
-		        .cors(cors -> cors.configurationSource(request -> {
-		            CorsConfiguration config = new CorsConfiguration();
-		            config.setAllowCredentials(true);
-                    config.addAllowedOriginPattern("*");  
-		            config.addAllowedHeader("*"); 
-		            config.addAllowedMethod("GET");
-		            config.addAllowedMethod("POST");
-		            config.addAllowedMethod("PUT");
-		            config.addAllowedMethod("DELETE");
-		            config.addAllowedMethod("OPTIONS"); 
-		            return config;
-		        }))
-			 
-			 
-	         .authorizeHttpRequests((authorize) -> {
-				   
-    authorize.requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll(); 
+		   
+SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http.csrf(csrf -> csrf.disable())
+        .cors(cors -> cors.configurationSource(request -> {
+            CorsConfiguration config = new CorsConfiguration();
+            config.setAllowCredentials(true);
+            config.addAllowedOrigin("http://localhost:4200");
+            config.addAllowedHeader("*");
+            config.addAllowedMethod("GET");
+            config.addAllowedMethod("POST");
+            config.addAllowedMethod("PUT");
+            config.addAllowedMethod("DELETE");
+            config.addAllowedMethod("OPTIONS");
+            config.setExposedHeaders(List.of("Set-Cookie"));
+            return config;
+        }))
+        .authorizeHttpRequests(authorize -> {
+            authorize.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
 
-            authorize.requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN","SUPER_ADMIN");
-            authorize.requestMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("ADMIN","SUPER_ADMIN");
-            authorize.requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN","SUPER_ADMIN");
-          //  authorize.requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "USER","SUPER_ADMIN");
-            authorize.requestMatchers(HttpMethod.PATCH, "/api/**").hasAnyRole("ADMIN", "USER","SUPER_ADMIN");
+            authorize.requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll();
+            authorize.requestMatchers(HttpMethod.GET, "/api/users/me").authenticated(); 
+            authorize.requestMatchers(HttpMethod.GET, "/api/users/all").hasRole("SUPER_ADMIN");
+			authorize.requestMatchers(HttpMethod.GET, "/api/ent/all").hasRole("SUPER_ADMIN");
+            authorize.requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN", "SUPER_ADMIN");
+            authorize.requestMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("ADMIN", "SUPER_ADMIN");
+            authorize.requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN", "SUPER_ADMIN");
+            authorize.requestMatchers(HttpMethod.PATCH, "/api/**").hasAnyRole("ADMIN", "USER", "SUPER_ADMIN");
             authorize.requestMatchers(HttpMethod.GET, "/api/**").permitAll();
-			            authorize.requestMatchers(HttpMethod.GET, "/api/**/all").hasRole("SUPER_ADMIN");
+            authorize.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+            authorize.anyRequest().authenticated();
+        })
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint));
 
-	             authorize.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
-	             
-	             authorize.anyRequest().authenticated();
-	         }).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+    http.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-			 
-			 http.exceptionHandling( exception -> exception
-		                .authenticationEntryPoint(authenticationEntryPoint));
+    return http.build();
+}
 
-		        http.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-		        return http.build();
-			 
-		 }
-		 
 		 
 		 
 		 @Bean

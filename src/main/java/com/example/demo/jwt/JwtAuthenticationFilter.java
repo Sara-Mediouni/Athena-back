@@ -17,13 +17,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-
-
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-	
-	
-	private JwtTokenProvider jwtTokenProvider;
+
+    private JwtTokenProvider jwtTokenProvider;
     private CustomUserDetailsService userDetailsService;
 
     @Autowired
@@ -32,38 +29,52 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
-private String getTokenFromCookie(HttpServletRequest request) {
-    if (request.getCookies() != null) {
-        for (Cookie cookie : request.getCookies()) {
-            System.out.println("[JWT FILTER] Cookie trouvé: " + cookie.getName() + "=" + cookie.getValue());
-            if ("accessToken".equals(cookie.getName())) {
-                System.out.println("[JWT FILTER] ✅ Token extrait du cookie");
-                return cookie.getValue();
+    private String getTokenFromCookie(HttpServletRequest request) {
+
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                System.out.println("[JWT FILTER] Cookie trouvé: " + cookie.getName() + "=" + cookie.getValue());
+                if ("token".equals(cookie.getName())) {
+                    System.out.println("[JWT FILTER] ✅ Token extrait du cookie");
+                    return cookie.getValue();
+                }
             }
         }
+        System.out.println("[JWT FILTER] ❌ Aucun token trouvé dans les cookies");
+        return null;
     }
-    System.out.println("[JWT FILTER] ❌ Aucun token trouvé dans les cookies");
-    return null;
-}
 
-@Override
+ @Override
 protected void doFilterInternal(HttpServletRequest request,
-                                HttpServletResponse response,
-                                FilterChain filterChain) throws ServletException, IOException {
+        HttpServletResponse response,
+        FilterChain filterChain) throws ServletException, IOException {
 
-    
+    if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+       
+        filterChain.doFilter(request, response);
+        return;
+    }
+
+    Cookie[] cookies = request.getCookies();
+    if (cookies == null) {
+        logger.info("[JWT FILTER] Pas de cookie reçu (getCookies()==null) pour la requête " + request.getRequestURI());
+    } else {
+        for (Cookie c : cookies) {
+            logger.info("[JWT FILTER] Reçu cookie : " + c.getName() + "=" + c.getValue());
+        }
+    }
     String token = getTokenFromCookie(request);
+    logger.info("[JWT FILTER] Token extrait = " + token);
 
     if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
         String username = jwtTokenProvider.getName(token);
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities());
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities());
 
         authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
@@ -72,27 +83,5 @@ protected void doFilterInternal(HttpServletRequest request,
 
     filterChain.doFilter(request, response);
 }
-
-
-	public String getJwtFromCookie(HttpServletRequest request) {
-    if (request.getCookies() != null) {
-        for (Cookie cookie : request.getCookies()) {
-            if ("token".equals(cookie.getName())) {
-                return cookie.getValue();
-            }
-        }
-    }
-    return null;
-}
-	 
-	 private String getTokenFromRequest(HttpServletRequest request){
-	        String bearerToken = request.getHeader("Authorization");
-
-	        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")){
-	            return bearerToken.substring(7, bearerToken.length());
-	        }
-
-	        return null;
-	    }
 
 }

@@ -34,6 +34,8 @@ import com.example.demo.dto.UserUpdateDTO;
 import com.example.demo.dto.userDTO;
 import com.example.demo.enums.Role;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
@@ -196,12 +198,23 @@ public ResponseEntity<List<userDTO>> getUsersByRole(@AuthenticationPrincipal Use
          User currentUser = userService.getCurrentUser();  
 
         return Map.of(
-            "username", currentUser.getName(),
+            "name", currentUser.getName(),
             "role", currentUser.getRole()
         );
     }
 
-
+@GetMapping("/test-cookies")
+public ResponseEntity<String> testCookies(HttpServletRequest request) {
+    Cookie[] cookies = request.getCookies();
+    if (cookies == null) {
+        return ResponseEntity.ok("Pas de cookies reçus");
+    }
+    StringBuilder sb = new StringBuilder("Cookies reçus : ");
+    for (Cookie cookie : cookies) {
+        sb.append(cookie.getName()).append("=").append(cookie.getValue()).append("; ");
+    }
+    return ResponseEntity.ok(sb.toString());
+}
 
 
 
