@@ -39,4 +39,29 @@ public List<CAglobalDTO> getCaPeriode(
 ) {
     return caGlobalService.getChiffreAffairePeriode(dateDebut, dateFin, mode,id,InclureBLs,groupBy);
 }
+ 
+    @GetMapping("/chiffre-client")
+public List<CAglobalDTO> getCaClient(
+    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
+    @RequestParam String mode,
+    @RequestParam String InclureBLs,
+    @RequestParam String client,
+    @RequestParam Long id
+) {
+    return caGlobalService.getEvolutionClientParMois(dateDebut, dateFin,client, mode,id,InclureBLs);
+}
+@GetMapping("/list-clients")
+public String[] getClientsList(   
+     @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
+    @RequestParam String mode,
+    @RequestParam String InclureBLs,
+    @RequestParam String groupBy,
+    @RequestParam Long id
+) {
+
+    return  caGlobalService.getClientList(dateDebut, dateFin, mode,InclureBLs,groupBy,id);
+}
+
 }
